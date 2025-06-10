@@ -34,7 +34,10 @@ def PlayGame(Targets, NumbersAllowed, TrainingGame, MaxTarget, MaxNumber):
     GameOver = False
     while not GameOver:
         DisplayState(Targets, NumbersAllowed, Score)
-        UserInput = input("Enter an expression: ")
+        UserInput = input("Enter an expression or 'help': ")
+        if UserInput.lower() == 'help':
+            print()
+            GenerateEvaluations(Targets, NumbersAllowed)
         print()
         if CheckIfUserInputValid(UserInput):
             UserInputInRPN = ConvertToRPN(UserInput)
@@ -50,6 +53,57 @@ def PlayGame(Targets, NumbersAllowed, TrainingGame, MaxTarget, MaxNumber):
             Targets = UpdateTargets(Targets, TrainingGame, MaxTarget)        
     print("Game over!")
     DisplayScore(Score)
+
+'''
+THIS PROBLEM IS VERY SIMILAR TO LEETCODE - TWO SUM.
+(BRUTEFORCING SOLUTIONS)
+'''
+ 
+def GenerateEvaluations(Targets, NumbersAllowed):
+    Operators = ["+", "-", "*", "/"]
+    Expressions = []
+    for i in range(len(NumbersAllowed)):
+        # First number
+        FirstNum = NumbersAllowed[i]
+        RemainingNums4 = NumbersAllowed[:i] + NumbersAllowed[i+1:]
+        # First operator, +
+        for Op1 in Operators:
+            for j in range(len(RemainingNums4)):
+                # Second number
+                SecondNum = RemainingNums4[j]
+                Expressions.append([str(FirstNum), Op1, str(SecondNum)])
+                RemainingNums3 = RemainingNums4[:j] + RemainingNums4[j+1:]
+                # Second operator, -
+                for Op2 in Operators:
+                    for k in range(len(RemainingNums3)):
+                        # Third number
+                        ThirdNum = RemainingNums3[k]
+                        Expressions.append([str(FirstNum), Op1, str(SecondNum), Op2, str(ThirdNum)])
+                        RemainingNums2 = RemainingNums3[:k] + RemainingNums3[k+1:]
+                        # Third operator, *
+                        for Op3 in Operators:
+                            for l in range(len(RemainingNums2)):
+                                # Fourth number
+                                FourthNum = RemainingNums2[l]
+                                Expressions.append([str(FirstNum), Op1, str(SecondNum), Op2, str(ThirdNum), Op3, str(FourthNum)])
+                                ReminaingNums1 = RemainingNums3[:l] + RemainingNums3[l+1:]
+                                # Fourth operator, /
+                                for Op4 in Operators:
+                                    # RemainingNums1 only has 1 number
+                                    FifthNum = ReminaingNums1[0]
+                                    Expressions.append([str(FirstNum), Op1, str(SecondNum), Op2, str(ThirdNum), Op3, str(FourthNum), Op4, str(FifthNum)])
+    MatchedTargets = []
+    for expression in Expressions:
+        expression = ''.join(expression)
+        try:
+            expressionRPN = ConvertToRPN(expression)
+            res = EvaluateRPN(expressionRPN)
+        except:
+            pass
+        if res > 0 and float(res) - math.floor(float(res)) == 0.0:
+            if res in Targets and res not in MatchedTargets:
+                print(f'{expression} = {res}')
+                MatchedTargets.append(res)
 
 def CheckIfUserInputEvaluationIsATarget(Targets, UserInputInRPN, Score):
     UserInputEvaluation = EvaluateRPN(UserInputInRPN)
